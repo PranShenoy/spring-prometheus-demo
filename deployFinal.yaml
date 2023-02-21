@@ -14,24 +14,24 @@ spec:
     metadata:
       labels:
         app: spring-prometheus-demo
+        type: spring-keda-testing
     spec:
       containers:
-      - name: spring-prometheus-demo
+      - name: spring-prometheus-demo-app
         image: brianmmcclain/spring-prometheus-demo:0.0.1-SNAPSHOT
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8080
-
+        imagePullPolicy: IfNotPresent
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: spring-prometheus-demo-service
+  name: spring-prometheus-demo
   labels:
     app: spring-prometheus-demo
+  annotations:
+    prometheus.io/scrape: "true"
 spec:
   selector:
-    app: spring-prometheus-demo
+    type: spring-keda-testing
   ports:
     - protocol: TCP
       name: http-traffic
@@ -42,14 +42,13 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
+  
   name: spring-prometheus-demo-service-monitor
-  labels:
-    release: prometheus-operator
 spec:
   selector:
     matchLabels:
       app: spring-prometheus-demo
   endpoints:
   - port: http-traffic
-    path: "/actuator/prometheus"
-    
+    path: '/actuator/prometheus'
+    interval: 10s    
